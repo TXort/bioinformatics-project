@@ -15,3 +15,17 @@ for seq_record in SeqIO.parse("r.fastq", "fastq"):
 
 print(len(seq))
 
+def get_distribution(seq, k):
+    k_mer = {}
+
+    for i in range(len(seq) - k + 1):
+        if seq[i:i+k] not in k_mer:
+            k_mer[seq[i:i+k]] = 0
+        k_mer[seq[i:i + k]] += 1
+
+    k_mer_distribution = {}
+    n = sum(k_mer.values())
+    for x, y in k_mer.items():
+        k_mer_distribution[x] = y / n
+
+    return k_mer_distribution
