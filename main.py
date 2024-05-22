@@ -29,3 +29,12 @@ def get_distribution(seq, k):
         k_mer_distribution[x] = y / n
 
     return k_mer_distribution
+
+seq2 = ""
+
+for seq_record in SeqIO.parse("klebsiella_pneumoniae_reference-1.fasta", "fasta"):
+    seq2 = seq_record.seq
+    break
+
+
+
