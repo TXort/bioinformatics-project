@@ -36,5 +36,23 @@ for seq_record in SeqIO.parse("klebsiella_pneumoniae_reference-1.fasta", "fasta"
     seq2 = seq_record.seq
     break
 
+distr1 = get_distribution(seq, 3)
+distr2 = get_distribution(seq2, 3)
 
+print(set(distr2.keys()))
+
+print(len(distr2))
+import pandas as pd
+from scipy.spatial.distance import cosine
+
+
+
+
+line_s = pd.Series(distr1)
+query_s = pd.Series(distr2)
+
+print(len(line_s))
+print(len(query_s))
+
+print(1 - cosine(line_s, query_s))
 
