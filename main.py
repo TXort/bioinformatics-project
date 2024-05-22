@@ -36,6 +36,8 @@ for seq_record in SeqIO.parse("klebsiella_pneumoniae_reference-1.fasta", "fasta"
     seq2 = seq_record.seq
     break
 
+seq2 = seq2.replace("N", "T")
+
 distr1 = get_distribution(seq, 3)
 distr2 = get_distribution(seq2, 3)
 
