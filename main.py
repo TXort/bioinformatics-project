@@ -59,6 +59,38 @@ def read_sequences(file_path: str, format: str, limit: int) -> List[Seq]:
             break
     return sequences
 
+def compare_and_assign(ref_d: Dict[str, List[float]], seqs: List[Seq]) -> Dict[str, int]:
+    results: Dict[str, int] = defaultdict(int)
+
+    for seq in seqs:
+
+        max_similarity: float = 0
+        max_key: str = UNCLASSIFIED
+
+        distributions: List[List[float]] = [
+            preprocess_distribution(get_distribution(seq, CONSTANT_K)),
+            preprocess_distribution(get_distribution(seq.reverse_complement(), CONSTANT_K)),
+            preprocess_distribution(get_distribution(seq.complement(), CONSTANT_K))
+        ]
+
+        for key, value in ref_d.items():
+
+            similarity: float = max(
+                calc_cosine_similarity(value, distributions[0]),
+                calc_cosine_similarity(value, distributions[1]),
+                calc_cosine_similarity(value, distributions[2])
+            )
+
+            if similarity < TOLERANCE:
+                continue
+
+            if similarity > max_similarity:
+                max_similarity = similarity
+                max_key = key
+
+        results[max_key] += 1
+
+    return results
 
 if __name__ == "__main__":
     references_dir: str = "references/"
