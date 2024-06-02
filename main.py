@@ -171,5 +171,33 @@ def create_dataframe(ref: Dict[str, Seq], samples: Dict[str, List[Seq]]) -> Tupl
 
 
 if __name__ == "__main__":
+    args = parse_arguments()
+
+    CONSTANT_K = args.constant_k
+    TOLERANCE = args.tolerance
+    SAMPLES_PER_BACTERIA = args.samples_per_bacteria
+    CPU_COUNT = args.cpu_count
+    DEFAULT_DICT = {"".join(x): 0 for x in product("ACGT", repeat=CONSTANT_K)}
+
     references_dir: str = "references/"
     tests_dir: str = "tests/"
+
+    start: float = time()
+    sequences: Dict[str, Seq] = read_references(references_dir, "fasta")
+
+    samples: Dict[str, List[Seq]] = {
+        x: read_sequences(tests_dir + x, "fastq", SAMPLES_PER_BACTERIA) for x in os.listdir(tests_dir)
+    }
+    end: float = time()
+
+    print("Time for reading: ", end - start)
+
+    df: pd.DataFrame = create_dataframe(sequences, samples)
+
+    if args.save_to_file:
+        df.to_csv(f"results_k_{CONSTANT_K}_t_{TOLERANCE}.csv")
+
+    print(df.to_string())
+
+    total_end: float = time()
+    print("Total time: ", total_end - start)
