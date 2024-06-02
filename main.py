@@ -91,6 +91,43 @@ def compare_and_assign(ref_d: Dict[str, List[float]], seqs: List[Seq]) -> Dict[s
         results[max_key] += 1
 
     return results
+def create_dataframe(ref: Dict[str, Seq], samples: Dict[str, List[Seq]]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
+    start: float = time()
+
+    with mp.Pool(CPU_COUNT) as pool:
+        items: List[List[float]] = pool.starmap(get_preprocessed_distribution, [(value, CONSTANT_K) for key, value in ref.items()])
+
+    red_d_prep: Dict[str, List[float]] = dict(zip(ref.keys(), items))
+
+    end: float = time()
+    print("Time for reference distribution processing: ", end - start)
+
+    df: pd.DataFrame = pd.DataFrame(index=ref.keys(), columns=samples.keys())
+
+    df.loc[UNCLASSIFIED] = 0
+
+    result_dict: Dict[Tuple[str, str], int] = defaultdict(int)
+
+    time_start: float = time()
+
+    with mp.Pool(CPU_COUNT) as pool:
+        global_list: List[Dict[str, int]] = pool.starmap(compare_and_assign, [(red_d_prep, seqs) for seqs in samples.values()])
+
+    for data, sample_name in zip(global_list, samples.keys()):
+        for key, value in data.items():
+            result_dict[(key, sample_name)] += value
+
+    time_end: float = time()
+
+    print("Time for comparison: ", time_end - time_start)
+
+    for (key, sample_name), value in result_dict.items():
+        df.loc[key, sample_name] = value
+
+    df.fillna(0, inplace=True)
+
+    return df
 
 if __name__ == "__main__":
     references_dir: str = "references/"
