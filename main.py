@@ -13,7 +13,7 @@ import multiprocessing as mp
 
 
 CPU_COUNT = mp.cpu_count()
-CONSTANT_K = 5
+CONSTANT_K = 3
 TOLERANCE = 0.7
 SAMPLES_PER_BACTERIA = 500
 UNCLASSIFIED = "unclassified"
@@ -26,31 +26,21 @@ def read_sequence(file_path: str, format: str) -> Seq:
     for record in SeqIO.parse(file_path + "." + format, format):
         return record.seq
 
+def preprocess_distribution(distr: Dict[str, float]) -> List[float]:
+    return [distr[x] for x in sorted(distr.keys())]
 
-def get_distribution(seq: str, k: int) -> Dict[str, float]:
-    k_mer: Dict[str, int] = {}
+def calc_cosine_similarity(distr1: List[float], distr2: List[float]) -> float:
+    return 1 - spatial.distance.cosine(distr1, distr2)
+
+def get_distribution(seq: Seq, k: int = 3) -> Dict[str, float]:
+    k_mer: Dict[str, int] = defaultdict(int, {k: 0 for k in DEFAULT_DICT.keys()})
 
     for i in range(len(seq) - k + 1):
-        if seq[i:i + k] not in k_mer:
-            k_mer[seq[i:i + k]] = 0
         k_mer[seq[i:i + k]] += 1
 
-    k_mer_distribution: Dict[str, float] = {}
+    total: int = sum(k_mer.values())
 
-    div: int = sum(k_mer.values())
-
-    for x, y in k_mer.items():
-        k_mer_distribution[x] = y / div
-
-    return k_mer_distribution
-
-
-def calc_cosine_similarity(distr1: Dict[str, float], distr2: Dict[str, float]) -> float:
-    line_s: pd.Series = pd.Series(distr1)
-    query_s: pd.Series = pd.Series(distr2)
-
-    return 1 - cosine(line_s, query_s)
-
+    return {k: v / total for k, v in k_mer.items()}
 
 def construct_matrix(d: Dict[Tuple[str, str], float]) -> pd.DataFrame:
     df: pd.DataFrame = pd.DataFrame(d.values(), index=pd.MultiIndex.from_tuples(d.keys())).unstack().fillna(1)
