@@ -1,9 +1,26 @@
-from typing import Dict, Tuple
+import os
+from random import randint
+from typing import List, Dict, Tuple
+
 from Bio import SeqIO
 import pandas as pd
 from Bio.Seq import Seq
-from scipy.spatial.distance import cosine
+from scipy import spatial
+from itertools import product
+from collections import defaultdict
+from time import time
+import multiprocessing as mp
 
+
+CPU_COUNT = mp.cpu_count()
+CONSTANT_K = 5
+TOLERANCE = 0.7
+SAMPLES_PER_BACTERIA = 500
+UNCLASSIFIED = "unclassified"
+DEFAULT_DICT = {"".join(x): 0 for x in product("ACGT", repeat=CONSTANT_K)}
+
+def replace_with_random(seq: Seq, rlist: List[str] = ["A", "C", "G", "T"]) -> Seq:
+    return Seq("".join([rlist[randint(0, 3)] if x == "N" else x for x in seq]))
 
 def read_sequence(file_path: str, format: str) -> Seq:
     for record in SeqIO.parse(file_path + "." + format, format):
