@@ -59,9 +59,6 @@ def read_sequences(file_path: str, format: str, limit: int) -> List[Seq]:
             break
     return sequences
 
-def construct_matrix(d: Dict[Tuple[str, str], float]) -> pd.DataFrame:
-    df: pd.DataFrame = pd.DataFrame(d.values(), index=pd.MultiIndex.from_tuples(d.keys())).unstack().fillna(1)
-    return df
 
 if __name__ == "__main__":
     references_dir: str = "references/"
