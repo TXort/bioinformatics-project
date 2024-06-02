@@ -38,6 +38,9 @@ def get_distribution(seq: Seq, k: int = 3) -> Dict[str, float]:
 
     return {k: v / total for k, v in k_mer.items()}
 
+def get_preprocessed_distribution(seq: Seq, k: int = 3) -> List[float]:
+    return preprocess_distribution(get_distribution(seq, k))
+
 def read_references(file_path: str, format: str) -> Dict[str, Seq]:
     references: Dict[str, Seq] = {}
     for file in os.listdir(file_path):
@@ -46,7 +49,15 @@ def read_references(file_path: str, format: str) -> Dict[str, Seq]:
             break
     return references
 
-
+def read_sequences(file_path: str, format: str, limit: int) -> List[Seq]:
+    sequences: List[Seq] = []
+    for record in SeqIO.parse(file_path, format):
+        if len(record.seq) < CONSTANT_K:
+            continue
+        sequences.append(replace_with_random(record.seq))
+        if len(sequences) >= limit:
+            break
+    return sequences
 
 def construct_matrix(d: Dict[Tuple[str, str], float]) -> pd.DataFrame:
     df: pd.DataFrame = pd.DataFrame(d.values(), index=pd.MultiIndex.from_tuples(d.keys())).unstack().fillna(1)
